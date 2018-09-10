@@ -85,5 +85,3 @@ def crossover(cromossomo1, cromossomo2):
 
 pop = generate_population(10)
 
-
-
