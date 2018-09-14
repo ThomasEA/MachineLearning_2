@@ -41,15 +41,15 @@ def calc_erro(pred_y, true_y, weights):
 def calc_alpha(err):
     return np.log((1 - err)/err)
 
-def change_weights(weights, idx, pred_y, true_y):
+def change_weights(weights, pred_y, true_y):
     
-    err_m = calc_erro(pred_y, true_y, weights[idx])
+    err_m = calc_erro(pred_y, true_y, weights)
     
     alpha = calc_alpha(err_m)
     
-    weights[idx] = np.multiply(weights[idx], np.exp([alpha * float(x) for x in (pred_y != true_y)]))
+    weights = np.multiply(weights, np.exp([alpha * float(x) for x in (pred_y != true_y)]))
     
-    return
+    return weights
 
 def adaboost(data, test_size, model, max_iter, n_folds):
 
@@ -60,22 +60,25 @@ def adaboost(data, test_size, model, max_iter, n_folds):
     #para referência, conforme documentação, treina uma vez sem os pesos
     model.fit(X_train, y_train)
 
-    #gera os pesos iniciais
-    w = np.ones(len(X_train)) / len(X_train)
-    
-    for i in range(max_iter):
+    #Cross-validation
+    for train_idx, test_idx in kf.split(X_train):
+   
+        #gera os pesos iniciais
+        w = np.ones(len(train_idx)) / len(train_idx)
         
-        #Cross-validation
-        for train_idx, test_idx in kf.split(X_train):
+        for i in range(max_iter):
             
             train_X, train_y = X_train.iloc[train_idx], y_train.iloc[train_idx]
             test_X,  test_y  = X_train.iloc[test_idx], y_train.iloc[test_idx]
             
-            model.fit(train_X, train_y, sample_weight=w[train_idx])
+            model.fit(train_X, train_y, sample_weight=w)
             
-            predict = pd.Series(model.predict(test_X), index=test_y.index)
+            predict_train = model.predict(train_X)
             
-            change_weights(w, test_idx, predict, test_y)
+            predict = model.predict(test_X)
+            
+            w = change_weights(w, predict_train, train_y)
+            
             
 
             
