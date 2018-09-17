@@ -4,7 +4,7 @@ Created on Thu Sep 13 10:37:36 2018
 
 @author: ethomas
 
-Implementação AdaBoost
+Implementação AdaBoost sem Cross-Validation
 
 """
 
@@ -22,9 +22,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
 def load_data():
-    #carrega o dataset
     df = pd.read_csv('../datasets/sonar.all-data.csv', delimiter=',', header=None)
-
     return df
 
 def split_train_test(data, test_size):
@@ -56,51 +54,37 @@ def error_rate(pred_y, true_y):
 
 def adaboost(data, test_size, model, max_iter, n_folds):
 
-    X = data.iloc[:,:-1]
-    y = data.iloc[:,-1]
-    
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
-    
-    #X_train, y_train, X_test, y_test = split_train_test(data, test_size=test_size)
-    
-    kf = KFold(n_splits=n_folds, shuffle=True, random_state=70)
+    X_train, y_train, X_test, y_test = split_train_test(data, test_size=test_size)
+
+    #gera os pesos iniciais
+    w = np.ones(len(X_train)) / len(X_train)
     
     #para referência, conforme documentação, treina uma vez sem os pesos
     model.fit(X_train, y_train)
 
-    
-
     err_rate = [np.zeros(max_iter)]
 
-
-    #Cross-validation
-    for train_idx, test_idx in kf.split(X_train):
-   
-        #gera os pesos iniciais
-        w = np.ones(len(train_idx)) / len(train_idx)
+    err_rate_iter = np.zeros(max_iter)
         
-        err_rate_iter = np.zeros(max_iter)
+    for i in range(max_iter):
         
-        for i in range(max_iter):
-            
-            train_X, train_y = X_train.iloc[train_idx], y_train.iloc[train_idx]
-            test_X,  test_y  = X_train.iloc[test_idx], y_train.iloc[test_idx]
-            
-            model.fit(train_X, train_y, sample_weight=w)
-            
-            predict_train = model.predict(train_X)
-            
-            predict_test = model.predict(test_X)
-            
-            w = change_weights(w, predict_train, train_y)
-            
-            err_rate_iter[i] = error_rate(predict_test, test_y)
+        train_X, train_y = X_train, y_train
+        test_X,  test_y  = X_test, y_test
         
-        err_rate = [sum(x) for x in zip(err_rate, err_rate_iter)]
+        model.fit(train_X, train_y, sample_weight=w)
         
-        print(err_rate)
+        predict_train = model.predict(train_X)
+        
+        predict_test = model.predict(test_X)
+        
+        w = change_weights(w, predict_train, train_y)
+        
+        err_rate_iter[i] = error_rate(predict_test, test_y)
         
     
+    #err_rate = [sum(x) for x in zip(err_rate, err_rate_iter)]
+        
+    return err_rate_iter
 
             
 
@@ -119,10 +103,11 @@ data = load_data()
 
 model = get_model('TREE')
 
-adaboost(data, 0.2, model, max_iter=10, n_folds=10)
+err_rate = adaboost(data, 0.2, model, max_iter=50, n_folds=10)
 
+print(err_rate)
 
-
+plt.plot(err_rate)
 
 #print(models[models['name'] == 'MLP'])
 
