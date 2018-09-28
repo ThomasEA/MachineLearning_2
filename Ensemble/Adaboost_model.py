@@ -39,6 +39,7 @@ class Adaboost:
         i = 0
         
         alphas = []
+        fit_predicted = np.zeros(len(y))
         
         #para cada classificador
         for clf in self.T:
@@ -47,9 +48,9 @@ class Adaboost:
             
             clf.fit(X, y, sample_weight=weights)
             
-            pred_train = clf.predict(X)
+            predicted = clf.predict(X)
             
-            miss = [int(d) for d in (pred_train != y)]
+            miss = [int(d) for d in (predicted != y)]
             err   = np.dot(weights, miss)/np.sum(weights)
             alpha = np.log((1 - err)/err)
             
@@ -59,8 +60,28 @@ class Adaboost:
             #ajusta os pesos
             weights = np.multiply(weights, np.exp([alpha * float(x) for x in miss]))/float(weights.sum())
             
-            accuracy = sum([int(d) for d in (pred_train == y)]) / len(pred_train)
+            accuracy = sum([int(d) for d in (predicted == y)]) / len(predicted)
             
-            print('Accuracy on model {0}: {1}', i, accuracy)
+            fit_predicted = [sum(x) for x in zip(fit_predicted, [x * alpha for x in predicted])]
         
         self.alphas = alphas
+        
+        return np.sign(fit_predicted)
+        
+    def predict(self, X, y):
+        
+        predicted = np.zeros(len(X))
+        
+        for model, alpha in zip(self.T, self.alphas):
+            
+            pred = model.predict(X)
+            
+            accuracy = sum([int(d) for d in (pred == y)]) / len(pred)
+            
+            #print(accuracy)
+            
+            predicted = [sum(x) for x in zip(predicted, [x * alpha for x in pred])]
+            
+        predicted = np.sign(predicted)
+        
+        return predicted
