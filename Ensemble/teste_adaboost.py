@@ -33,8 +33,8 @@ n_folds = 10
 
 clfs = []
 
-for i in range(0,10):
-    clfs.append(DecisionTreeClassifier(max_depth=1, max_leaf_nodes=1))
+for i in range(0,3):
+    clfs.append(DecisionTreeClassifier(max_depth=1, max_leaf_nodes=2))
 
 df = load_data()
 
@@ -49,7 +49,8 @@ for train_idx, test_idx in kf.split(train):
     X_train, y_train = df.iloc[train_idx, :-1], df.iloc[train_idx, -1]
     X_test , y_test  = df.iloc[test_idx , :-1], df.iloc[test_idx, -1]
 
-a = [1,2,3,4,5]
-b = [1,2,3,4,5]
-boosting.fit(a, b)
+    boosting.fit(X_train, y_train)
+    
+    print(boosting.alphas)
+
 
