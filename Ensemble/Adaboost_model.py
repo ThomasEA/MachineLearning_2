@@ -52,7 +52,7 @@ class Adaboost:
             
             miss = [int(d) for d in (predicted != y)]
             err   = np.dot(weights, miss)/np.sum(weights)
-            alpha = np.log((1 - err)/err)
+            alpha = 0.5 * np.log((1 - err)/err)
             
             #guarda o alpha para o classificador
             alphas.append(alpha)
@@ -68,7 +68,7 @@ class Adaboost:
         
         return np.sign(fit_predicted)
         
-    def predict(self, X, y):
+    def predict(self, X):#, y):
         
         predicted = np.zeros(len(X))
         
@@ -76,7 +76,7 @@ class Adaboost:
             
             pred = model.predict(X)
             
-            accuracy = sum([int(d) for d in (pred == y)]) / len(pred)
+            #accuracy = sum([int(d) for d in (pred == y)]) / len(pred)
             
             #print(accuracy)
             
