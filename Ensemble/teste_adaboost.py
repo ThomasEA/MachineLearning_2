@@ -11,9 +11,11 @@ from sklearn.model_selection  import train_test_split, StratifiedKFold
 from sklearn.naive_bayes      import GaussianNB
 from sklearn.tree             import DecisionTreeClassifier
 from sklearn.metrics          import accuracy_score, recall_score, precision_score, f1_score
-from sklearn import metrics
+from sklearn                  import metrics
 
-from Adaboost_model      import Adaboost
+from Adaboost_model           import Adaboost
+
+import copy
 
 def load_data():
     """
@@ -87,7 +89,7 @@ for i in range(1,n_clfs + 1, 1):
 
     kf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=random_state)
     
-    boosting = Adaboost(clfs.copy())
+    boosting = Adaboost(copy.copy(clfs))
     
     acc_cv = []
     
@@ -109,7 +111,7 @@ for i in range(1,n_clfs + 1, 1):
     
     accuracy.append(np.mean(acc_cv))
         
-fig = plt.figure(figsize=(8, 8)) 
+fig = plt.figure(figsize=(6, 6)) 
 ax  = fig.add_subplot(111)
 
 ax.set_title('Performance on trainning with 10-fold validation')
